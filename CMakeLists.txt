@@ -20,9 +20,22 @@ link_directories(/usr/local/Cellar/libuv/1*/lib)
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+
+link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/include")  # At least if using vcpkg
+link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/include/openssl")  # At least if using vcpkg
+link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/lib")  # At least if using vcpkg
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 
 add_executable(particle_filter ${sources})
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+  # At least if using vcpkg
+  target_link_libraries(particle_filter zlib ssleay32 libuv uWS)
 
-target_link_libraries(particle_filter z ssl uv uWS)
+else(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+  target_link_libraries(particle_filter z ssl uv uWS)
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 
