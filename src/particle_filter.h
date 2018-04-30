@@ -13,7 +13,7 @@
 
 struct Particle {
 
-  unsigned int id;
+  int id;
   double x;
   double y;
   double theta;
@@ -26,7 +26,7 @@ struct Particle {
 class ParticleFilter {
 
   // Number of particles to draw
-  unsigned int num_particles; 
+  int num_particles; 
 
   // Flag, if filter is initialized
   bool is_initialized;
