@@ -102,7 +102,7 @@ int main()
               std::istream_iterator<float>(),
               std::back_inserter(y_sense));
 
-          for (int i = 0; i < x_sense.size(); i++) {
+          for (unsigned int i = 0; i < x_sense.size(); i++) {
             LandmarkObs obs;
             obs.x = x_sense[i];
             obs.y = y_sense[i];
@@ -115,11 +115,11 @@ int main()
 
           // Calculate and output the average weighted error of the particle filter over all time steps so far.
           vector<Particle> particles = pf.particles;
-          int num_particles = particles.size();
+          unsigned int num_particles = particles.size();
           double highest_weight = -1.0;
           Particle best_particle;
           double weight_sum = 0.0;
-          for (int i = 0; i < num_particles; ++i) {
+          for (unsigned int i = 0; i < num_particles; ++i) {
             if (particles[i].weight > highest_weight) {
               highest_weight = particles[i].weight;
               best_particle = particles[i];
@@ -177,7 +177,8 @@ int main()
   });
 
   int port = 4567;
-  if (h.listen(port)) {
+  auto host = "127.0.0.1";
+  if (h.listen(host, port)) {
     std::cout << "Listening to port " << port << std::endl;
   } else {
     std::cerr << "Failed to listen to port" << std::endl;

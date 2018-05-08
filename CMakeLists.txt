@@ -4,6 +4,8 @@ cmake_minimum_required (VERSION 3.5)
 
 add_definitions(-std=c++11)
 
+set(CMAKE_CXX_STANDARD 11)
+
 set(CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
@@ -22,7 +24,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 
-link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/include")  # At least if using vcpkg
+include_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/include")  # At least if using vcpkg
 link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/include/openssl")  # At least if using vcpkg
 link_directories("C:/Program\ Files\ (x86)/vcpkg/installed/x86-windows/lib")  # At least if using vcpkg
 
