@@ -34,6 +34,16 @@ class ParticleFilter {
   // Vector of weights of all particles
   std::vector<double> weights;
 
+  /**
+   * Resample the weights using a resampling wheel.
+   */
+  void ResampleWithWheel();
+
+  /**
+   * Resample the weights using a weighted discrete distribution.
+   */
+  void ResampleWithDiscreteDistribution();
+
  public:
 
   // Set of current particles
