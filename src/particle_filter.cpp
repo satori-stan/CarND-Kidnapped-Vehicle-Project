@@ -94,7 +94,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
-  // TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
+  // Find the predicted measurement that is closest to each observed measurement and assign the 
   //   observed measurement to this particular landmark.
   for (std::vector<LandmarkObs>::iterator observation = observations.begin();
       observation != observations.end(); ++observation) {
@@ -145,14 +145,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // 3. Discard landmarks that are beyond the sensor's range to make the rest
     //   of the process more efficient.
     std::vector<LandmarkObs> predicted_landmarks;
+    // Take into account an extension to the range consisting on the max deviation
+    // of the landmarks plus the max deviation of the sensor.
+    // TODO: Add the sensor deviation.
+    double range_extension = sqrt(pow(std_landmark[0], 2) + pow(std_landmark[1], 2));
     for (std::vector<Map::single_landmark_s>::const_iterator landmark =
           map_landmarks.landmark_list.begin();
         landmark != map_landmarks.landmark_list.end(); ++landmark) {
       // For the association only use landmarks that are in the sensor's range
       double x_l = landmark->x_f;
       double y_l = landmark->y_f;
-      if (dist(x_l, y_l, x_p, y_p) <= 2 * sensor_range) {  // XXX: Plus some noise (of the sensor or the landmark?)
-        // TODO: Should be able to do this by copying directly.
+      if (dist(x_l, y_l, x_p, y_p) <= sensor_range + range_extension) {
         LandmarkObs o;
         o.id = static_cast<int>(landmark->id_i);
         o.x = x_l;
@@ -172,29 +175,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     for (std::vector<LandmarkObs>::iterator observation = transformed_observations.begin();
         observation != transformed_observations.end(); ++observation) {
 
-      double x;
-      double y;
-      double mu_x;
-      double mu_y;
+      // Match the observation with its landmark
+      double x = observation->x;
+      double y = observation->y;
+      const unsigned int index = static_cast<unsigned>(observation->id - 1);
+      double mu_x = map_landmarks.landmark_list[index].x_f;
+      double mu_y = map_landmarks.landmark_list[index].y_f;
 
-      // TODO: Do it without a loop. The landmark id = landmark index + 1
-      for (std::vector<LandmarkObs>::iterator landmark = predicted_landmarks.begin();
-          landmark != predicted_landmarks.end(); ++landmark) {
-        if (landmark->id == observation->id) {
-          x = observation->x;
-          y = observation->y;
-          mu_x = landmark->x;
-          mu_y = landmark->y;
-          break;
-        }
-      }
-      /*
-      x = observation->x;
-      y = observation->y;
-      mu_x = predicted_landmarks[observation->id - 1].x;
-      mu_y = predicted_landmarks[observation->id - 1].y;
-      */
-
+      // Calculate the multivariate Gaussian distribution
       prob *= exp( - (pow(x-mu_x, 2) / pow(sigma_x, 2) / 2 + pow(y-mu_y, 2) / pow(sigma_y, 2) / 2)) / (2 * M_PI * sigma_x * sigma_y);
     }
 
@@ -204,32 +192,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 }
 
 void ParticleFilter::resample() {
-  // TODO: Resample particles with replacement with probability proportional to their weight. 
-  // NOTE: You may find std::discrete_distribution helpful here.
-  //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-  
-  /*
-  The resampling wheel as used in the lectures
-  int index = (rand() % num_particles); // random.randint(0, N-1)
-  int beta = 0;
-  double two_max_weight = 2 *
-      std::max_element(particles.begin(), particles.end(), 
-          [](const Particle& p1, const Particle& p2) {
-        return p1.weight < p2.weight;
-      })->weight;
- double two_max_weight = 2 * (*std::max_element(weights.begin(), weights.end()));
-  for (std::vector<Particle>::iterator particle = particles.begin();
-      particle != particles.end(); ++particle) {
-    beta += random_uniform(gen);
-    while w[index] < beta:
-        beta = beta - w[index]
-        index = 0 if index == N-1 else index + 1
+  // Resample particles with replacement with probability proportional to their weight. 
 
-    p3.append(p[index])
-  }
-  */
-  /*
-  Original
   std::vector<Particle> new_particles;
   // Instead of doing the resampling wheel, use a discrete distribution to
   // get random items from the list using the assigned weights.
@@ -238,14 +202,11 @@ void ParticleFilter::resample() {
   discrete_distribution<unsigned int> random_uniform(begin, weights.end());
   for (int i = 0; i < num_particles; ++i) {
     // Calculate the index from the iterator in order to find the correct particle
-    //int index = std::distance(begin, random_uniform(gen));
-    //new_particles.push_back(particles[static_cast<unsigned>(index)]);
 
     unsigned int index = random_uniform(gen);
     new_particles.push_back(particles[index]);
-    //new_particles.push_back(particles[random_uniform(gen)]);
   }
-  */
+  /*
   std::vector<Particle> new_particles;
   unsigned int index = static_cast<unsigned>(rand() % num_particles);
   double beta = 0;
@@ -260,16 +221,6 @@ void ParticleFilter::resample() {
       index = index == static_cast<unsigned>(num_particles - 1) ? 0 : index + 1;
     }
     new_particles.push_back(particles[index]);
-  }
-  /*
-  for (std::vector<Particle>::iterator particle = particles.begin();
-      particle != particles.end(); ++particle) {
-    beta += random_uniform(gen);
-    while w[index] < beta:
-        beta = beta - w[index]
-        index = 0 if index == N-1 else index + 1
-
-    p3.append(p[index])
   }
   */
   particles = new_particles;
